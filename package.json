@@ -15,5 +15,7 @@
   "bugs": {
     "url": "https://github.com/414owen/MusicMap/issues"
   },
-  "homepage": "https://github.com/414owen/MusicMap#readme"
+  "homepage": "https://github.com/414owen/MusicMap#readme",
+  "dependencies": {
+  }
 }

@@ -28,9 +28,9 @@ backends.spotify = function(addNode, onSearchClick) {
 
     // Callback takes a list of names, and a function of what to do on node Add
     result.search = function(artist, callback) {
-        var request = pegasus('https://api.spotify.com/v1/search?q=' + encodeURI(artist) + '&type=artist');
-        request.then(function(results) {
-            var artists = results.artists.items.slice(0, 5).map(
+        superagent.get('https://api.spotify.com/v1/search?q=' + encodeURI(artist) + '&type=artist')
+        .end(function(err, results) {
+            var artists = JSON.parse(results.text).artists.items.slice(0, 5).map(
                 function(related) {return related.name;}
             );
             callback(artists);
@@ -40,9 +40,9 @@ backends.spotify = function(addNode, onSearchClick) {
     result.getRelated = function(id, callback) {
         var artist = this.artists[id];
         if (!artist.gotRelated) {
-            var request = pegasus('https://api.spotify.com/v1/artists/' + encodeURI(id) + '/related-artists');
-            request.then(function(related) {
-                var artist = related.map(function(artist) {return getNewArtist(artist.name, artist.id);});
+            superagent.get('https://api.spotify.com/v1/artists/' + encodeURI(id) + '/related-artists')
+            .end(function(err, related) {
+                var artist = JSON.parse(related.text).map(function(artist) {return getNewArtist(artist.name, artist.id);});
             });
         }
     };
