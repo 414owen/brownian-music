@@ -1,8 +1,6 @@
-
 window.onload = function() {
 
 var searchResults = div().style(style.vertical);
-
 function performSearch(elified) {
     searchResults.clear();
     backend.search(elified.val.value, addSearchResults);
@@ -27,7 +25,6 @@ function addSearchResults(artistNames) {
 
 var backend = backends[backends.selected](function() {}, function() {});
 var graphHolder = div().style(style.background);
-var frontend = graph(graphHolder.val);
 var inputvar = input('Hello World')
                 .style(style.input, {width: '100%'})
                 .placeholder('Artist')
@@ -42,8 +39,7 @@ body().style(style.body)(
         ).style({width: '15rem'})
     )
 );
-
-
+var frontend = graph(graphHolder.val);
 
 };
 
