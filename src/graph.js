@@ -3,6 +3,7 @@ function graph(container) {
     var ratio = window.devicePixelRatio || 1;
     var width = container.offsetWidth * ratio;
     var height = container.offsetHeight * ratio;
+    var startVel = width / 100;
     var canv = canvas()
                     .width(width)
                     .height(height);
@@ -30,23 +31,24 @@ function graph(container) {
         ctx.font = font;
         var newText = text;
         var letters = text.length;
-        while (ctx.measureText(newText).width > radius * 2) {
+        while (ctx.measureText(newText).width > radius * 2 - 10) {
             newText = text.substring(0, --letters) + '...';
         }
-        var node = {
-            fullText: text,
-            text: newText,
-            x: width / 2,
-            y: height / 2,
-            dx: 0,
-            dy: 0,
-            fontSize: 0
-        }
+        var node;
         if (graph.length === 0) {
-            graph.push(node);
+            node = {
+                fullText: text,
+                text: newText,
+                x: width / 2,
+                y: height / 2,
+                dx: 0,
+                dy: 0,
+                fontSize: 0
+            };
         } else {
-            
+            node = 
         }
+        graph.push(node);
         return node;
     }
     
