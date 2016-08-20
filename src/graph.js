@@ -40,7 +40,13 @@ function graph(container) {
     
     function frame() {
         ctx.font = "30px Arial";
+        ctx.strokeStyle = "#dddddd";
+        ctx.fillStyle = "#dddddd";
+        ctx.lineWidth = 2;
+        ctx.clearRect(0, 0, width, height);
         graph.forEach(function(node) {
+            ctx.arc(node.x,node.y,40,0,2*Math.PI);
+            ctx.stroke();
             ctx.fillText(node.name,node.x,node.y);
         });
         window.requestAnimationFrame(frame);
