@@ -20,6 +20,7 @@ backends.spotify = function(addNode, onSearchClick) {
         sdfej3bncc: {
             gotRelated: false,
             related: ["sdwefijh33","dfe3gh3e3q"],
+            node: a node that we don't know anything about.
             relatedOnScreen: 2
         }
 

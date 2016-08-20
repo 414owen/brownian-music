@@ -2,27 +2,37 @@
 window.onload = function() {
 
 var searchResults = div().style(style.vertical);
+
 function performSearch(elified) {
-    backend.search(elified.val.value, addSearchResults);
     searchResults.clear();
+    backend.search(elified.val.value, addSearchResults);
 }
 
 function addSearchResults(artistNames) {
     searchResults.clear();
     artistNames.forEach(
         function(name) {
-            searchResults(div(name).style(style.base, style.listItem));
+            searchResults(
+                div(name)
+                    .style(style.base, style.listItem)
+                    .onclick(function() {
+                            body().val.removeChild(body().val.childNodes[2]);
+                            frontend.addNode(name);
+                        }
+                    )
+            );
         }
     );
 }
 
 var backend = backends[backends.selected](function() {}, function() {});
-
+var graphHolder = div().style(style.background);
+var frontend = graph(graphHolder.val);
 var inputvar = input('Hello World')
                 .style(style.input, {width: '100%'})
                 .placeholder('Artist')
                 .onchange(performSearch);
-var graphHolder = div().style(style.background);
+
 body().style(style.body)(
     graphHolder,
     div().style(style.center)(
@@ -147,5 +157,6 @@ var style = mergeStyle({
     },
     listItem: {
         depends: ['inverted', 'padded', 'fillHor', 'normalOnHover'],
+        cursor: 'pointer'
     }
 });

@@ -1,9 +1,13 @@
-function graph() {
-    this.init = function(parent) {
-        var ratio = window.devicePixelRatio || 1;
-        var canv = canvas().width(window.innerWidth * ratio).height(window.innerHeight * ratio);
-        var ctx = canv.val.getContext('2d');
-    }
+function graph(container) {
+    var ratio = window.devicePixelRatio || 1;
+    var canv = canvas()
+                    .width(container.innerWidth * ratio)
+                    .height(container.innerHeight * ratio);
+    canv.style.width = '100%';
+    canv.style.width = '100%';
+    container.appendChild(canv.val);
+    var ctx = canv.val.getContext('2d');
+    var result = {};
     var graph = [
     /*
         {
@@ -17,12 +21,20 @@ function graph() {
     */
     ];
     
-    this.addNode = function(text, from) {
+    result.addNode = function(text, from) {
         var node;
         if (graph.length === 0) {
-
+            
+        } else {
+            
         }
         return node;
     }
+    
+    graph.forEach(function(node) {
+        
+    });
+    
+    return result;
 }
 
