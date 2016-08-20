@@ -11,11 +11,12 @@ function graph(container) {
     container.appendChild(canv.val);
     var ctx = canv.val.getContext('2d');
     var result = {};
-    var font = "Raleway";
+    var font = "14px Raleway";
     var graph = [
     /*
         {
-            name: 'example',
+            fullText: 'thing',
+            text: 'example',
             x: 0,
             y: 0,
             dy: 0,
@@ -26,26 +27,23 @@ function graph(container) {
     ];
     
     result.addNode = function(text, from) {
-        var node;
         ctx.font = font;
-        var metrics;
-        var scaledText = [text];
-        function scaleText() {
-            metrics = ctx.measureText(text);
-            if (metrics) {
-                
-            }
+        var newText = text;
+        var letters = text.length;
+        while (ctx.measureText(newText).width > radius * 2) {
+            newText = text.substring(0, --letters) + '...';
         }
-        scaleText();
+        var node = {
+            fullText: text,
+            text: newText,
+            x: width / 2,
+            y: height / 2,
+            dx: 0,
+            dy: 0,
+            fontSize: 0
+        }
         if (graph.length === 0) {
-            graph.push({
-                name: text,
-                x: width / 2,
-                y: height / 2,
-                dx: 0,
-                dy: 0,
-                fontSize: 0
-            });
+            graph.push(node);
         } else {
             
         }
@@ -66,7 +64,7 @@ function graph(container) {
         });
         ctx.fillStyle = "#333";
         graph.forEach(function(node) {
-            ctx.fillText(node.name,node.x,node.y);
+            ctx.fillText(node.text,node.x,node.y);
         });
         window.requestAnimationFrame(frame);
     }
