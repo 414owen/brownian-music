@@ -3,12 +3,11 @@ function graph(container) {
     var ratio = window.devicePixelRatio || 1;
     var width = container.offsetWidth * ratio;
     var height = container.offsetHeight * ratio;
-    var startVel = width / 100;
+    var startVel = 10 * ratio;
     var canv = canvas()
                     .width(width)
-                    .height(height);
-    canv.style.width = '100%';
-    canv.style.width = '100%';
+                    .height(height)
+                    .style({width: '100%', height: '100%'});
     container.appendChild(canv.val);
     var ctx = canv.val.getContext('2d');
     var result = {};
@@ -43,10 +42,16 @@ function graph(container) {
                 y: height / 2,
                 dx: 0,
                 dy: 0,
-                fontSize: 0
             };
         } else {
-            node = 
+            node = {
+                fullText: text,
+                text: newText,
+                x: from.x,
+                y: from.y,
+                dx: startVel,
+                dy: startVel,
+            };
         }
         graph.push(node);
         return node;
@@ -71,6 +76,19 @@ function graph(container) {
         window.requestAnimationFrame(frame);
     }
     frame();
+        
+    canv.onclick(function(e) {
+        var x = e.pageX - canv.val.offsetLeft;
+        var y = e.pageY - canv.val.offsetTop;
+        graph.forEach(function(node) {
+            var hdist = Math.abs(node.x - x);
+            var vdist = Math.abs(node.y - y);
+            var distance = Math.sqrt((hdist * hdist) + (vdist * vdist));
+            if (distance < radius) {
+                console.log(node.text);
+            }
+        });
+    });
     
     return result;
 }

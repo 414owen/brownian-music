@@ -1,4 +1,4 @@
-backends.spotify = function(addNode, onSearchClick) {
+backends.spotify = function() {
     result = {};
     function getNewArtist(idparam) {
         return {

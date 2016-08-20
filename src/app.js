@@ -1,7 +1,7 @@
 window.onload = function() {
 
 var searchResults = div().style(style.vertical);
-function performSearch(elified) {
+function performSearch(e, elified) {
     searchResults.clear();
     backend.search(elified.val.value, addSearchResults);
 }
@@ -14,7 +14,9 @@ function addSearchResults(artistNames) {
                 div(name)
                     .style(style.base, style.listItem)
                     .onclick(function() {
-                            body().val.removeChild(body().val.childNodes[2]);
+                            body().val.removeChild(body().val.childNodes[1]);
+                            body(graphHolder);
+                            var frontend = graph(graphHolder.val);
                             frontend.addNode(name);
                         }
                     )
@@ -23,25 +25,22 @@ function addSearchResults(artistNames) {
     );
 }
 
-var backend = backends[backends.selected](function() {}, function() {});
-var graphHolder = div().style(style.background);
+var backend = backends[backends.selected]();
+var graphHolder = div().style(style.fillScreen);
 var inputvar = input('Hello World')
                 .style(style.input, {width: '100%'})
                 .placeholder('Artist')
                 .onchange(performSearch);
 
-body().style(style.body)(
-    graphHolder,
-    div().style(style.center)(
-        div(
-            inputvar,
-            div(searchResults).style({width: '100%'})
-        ).style({width: '15rem'})
-    )
+body().style(style.body, style.center)(
+    div(
+        inputvar,
+        div(searchResults).style({width: '100%'})
+    ).style({width: '15rem'})
 );
-var frontend = graph(graphHolder.val);
 
 };
+
 
 nutmeg().global();
 var backends = {selected: 'spotify'};
@@ -103,10 +102,6 @@ var style = mergeStyle({
     },
     fillScreen: {
         depends: ['fill', 'abs']
-    },
-    background: {
-        depends: ['fillScreen'],
-        zIndex: '-1'
     },
     abs: {
         position: 'absolute'
