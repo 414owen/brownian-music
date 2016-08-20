@@ -40,6 +40,8 @@ function graph(container) {
     
     function frame() {
         ctx.font = "30px Arial";
+        ctx.textAlign = 'center';
+        ctx.textBaseline="middle"; 
         ctx.strokeStyle = "#dddddd";
         ctx.fillStyle = "#dddddd";
         ctx.lineWidth = 2;
