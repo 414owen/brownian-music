@@ -17,15 +17,14 @@ function addSearchResults(artistNames) {
 }
 
 var backend = backends[backends.selected](function() {}, function() {});
-var ratio = window.devicePixelRatio || 1;
-var canv = canvas().width(window.innerWidth * ratio).height(window.innerHeight * ratio);
-var ctx = canv.val.getContext('2d');
+
 var inputvar = input('Hello World')
                 .style(style.input, {width: '100%'})
                 .placeholder('Artist')
                 .onchange(performSearch);
+var graphHolder = div().style(style.background);
 body().style(style.body)(
-    canv.style(style.background),
+    graphHolder,
     div().style(style.center)(
         div(
             inputvar,
@@ -33,6 +32,8 @@ body().style(style.body)(
         ).style({width: '15rem'})
     )
 );
+
+
 
 };
 
