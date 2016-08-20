@@ -8,6 +8,9 @@ function performSearch(e, elified) {
 
 function addSearchResults(artistNames) {
     searchResults.clear();
+    if(artistNames.length == 0){
+        searchResults(div('No Results').style(style.noResult))
+    }
     artistNames.forEach(
         function(name) {
             searchResults(
@@ -149,5 +152,9 @@ var style = mergeStyle({
     listItem: {
         depends: ['inverted', 'padded', 'fillHor', 'normalOnHover'],
         cursor: 'pointer'
+    },
+    noResult: {
+        depends: ['inverted', 'padded', 'fillHor'],
+        cursor: 'default'
     }
 });
