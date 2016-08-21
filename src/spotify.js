@@ -24,18 +24,18 @@ backends.spotify = function() {
     result.search = function(artist, callback) {
         superagent.get('https://api.spotify.com/v1/search?q=' + encodeURI(artist) + '&type=artist')
         .end(function(err, results) {
-            var artists = JSON.parse(results.text).artists.items.slice(0, 5).map(
+            var searchres = JSON.parse(results.text).artists.items.slice(0, 5).map(
                 function(artist) {return {name: artist.name, val: artist.id};}
             );
-            artists.forEach(function(artist) {
-                artists[artist.val.id] = {
+            searchres.forEach(function(artist) {
+                artists[artist.val] = {
                     onScreen: true,
                     gotRelated: false,
                     related: [],
                     relatedOnScreen: 0
                 };
             });
-            callback(artists);
+            callback(searchres);
         });
     };
 
@@ -43,14 +43,31 @@ backends.spotify = function() {
         artists[id].onScreen = true;
     };
 
+    function firstRelated(id, callback) {
+        var artist = artists[id];
+        var related = artist.related;
+        var length = related.length;
+        for (var i = artist.relatedOnScreen; i < length; i++) {
+            var relid = artists[i];
+            var rel = artists[relid];
+            if (!rel.onScreen) {
+                callback(relid)
+            }
+        }
+    }
+
     result.getRelated = function(id, callback) {
         var artist = artists[id];
         if (!artist.gotRelated) {
             superagent.get('https://api.spotify.com/v1/artists/' + encodeURI(id) + '/related-artists')
             .end(function(err, related) {
                 artist.gotRelated = true;
-                artist.related = JSON.parse(related.text).map(function(result) {return result.id;});
+                debugger;
+                artist.related = JSON.parse(related.text).artists.map(function(result) {return result.id;});
+                firstRelated(id, callback);
             });
+        } else {
+            firstRelated(id, callback);
         }
     };
     return result;

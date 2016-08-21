@@ -98,8 +98,9 @@ function graph(backend, container) {
             var distance = Math.sqrt((hdist * hdist) + (vdist * vdist));
             if (distance < radius) {
                 console.log(node.text);
-                backend.getRelated(node.val, function() {
-
+                backend.getRelated(node.val, function(artist) {
+                    result.addNode(artist.node, artist.val, node);
+                    backend.nodeOnScreen(artist.artist.val);
                 });
             }
         });
