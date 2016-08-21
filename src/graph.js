@@ -1,4 +1,4 @@
-function graph(container) {
+function graph(backend, container) {
     var radius = 40;
     var ratio = window.devicePixelRatio || 1;
     var width = container.offsetWidth * ratio;
@@ -21,38 +21,48 @@ function graph(container) {
             y: 0,
             dy: 0,
             dx: 0,
-            fontSize: 0
+            fontSize: 0,
+            val: backend...
         },
     */
     ];
-    
-    result.addNode = function(text, from) {
+
+    function truncate(text) {
         ctx.font = font;
         var newText = text;
         var letters = text.length;
         while (ctx.measureText(newText).width > radius * 2 - 10) {
             newText = text.substring(0, --letters) + '...';
         }
-        var node;
-        if (graph.length === 0) {
-            node = {
-                fullText: text,
-                text: newText,
-                x: width / 2,
-                y: height / 2,
-                dx: 0,
-                dy: 0,
-            };
-        } else {
-            node = {
-                fullText: text,
-                text: newText,
-                x: from.x,
-                y: from.y,
-                dx: startVel,
-                dy: startVel,
-            };
-        }
+        return newText;
+    }
+
+    result.addFirstNode = function(text, val) {
+        var node = {
+            fullText: text,
+            text: truncate(text),
+            x: width / 2,
+            y: height / 2,
+            dx: 0,
+            dy: 0,
+            val: val
+        };
+        backend.nodeOnScreen(val);
+        graph.push(node);
+        return node;
+    }
+    
+    result.addNode = function(text, val, from) {
+        var node = {
+            fullText: text,
+            text: truncate(text),
+            x: from.x,
+            y: from.y,
+            dx: startVel,
+            dy: startVel,
+            val: val
+        };
+        backend.nodeOnScreen(val);
         graph.push(node);
         return node;
     }
@@ -72,6 +82,8 @@ function graph(container) {
         ctx.fillStyle = "#333";
         graph.forEach(function(node) {
             ctx.fillText(node.text,node.x,node.y);
+            node.x += node.dx;
+            node.y += node.dy;
         });
         window.requestAnimationFrame(frame);
     }
@@ -86,10 +98,12 @@ function graph(container) {
             var distance = Math.sqrt((hdist * hdist) + (vdist * vdist));
             if (distance < radius) {
                 console.log(node.text);
+                backend.getRelated(node.val, function() {
+
+                });
             }
         });
     });
-    
     return result;
 }
 

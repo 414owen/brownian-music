@@ -6,21 +6,21 @@ function performSearch(e, elified) {
     backend.search(elified.val.value, addSearchResults);
 }
 
-function addSearchResults(artistNames) {
+function addSearchResults(artists) {
     searchResults.clear();
-    if (artistNames.length === 0) {
+    if (artists.length === 0) {
         searchResults(div('No Results').style(style.noResult))
     }
-    artistNames.forEach(
-        function(name) {
+    artists.forEach(
+        function(artist) {
             searchResults(
-                div(name)
+                div(artist.name)
                     .style(style.base, style.listItem)
                     .onclick(function() {
                             body().val.removeChild(body().val.childNodes[1]);
                             body(graphHolder);
-                            var frontend = graph(graphHolder.val);
-                            frontend.addNode(name);
+                            var frontend = graph(backend, graphHolder.val);
+                            frontend.addFirstNode(artist.name, artist.val);
                         }
                     )
             );
