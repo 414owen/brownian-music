@@ -8,7 +8,7 @@ function performSearch(e, elified) {
 
 function addSearchResults(artistNames) {
     searchResults.clear();
-    if(artistNames.length == 0){
+    if(artistNames.length === 0){
         searchResults(div('No Results').style(style.noResult))
     }
     artistNames.forEach(
