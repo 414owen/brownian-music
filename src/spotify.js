@@ -11,6 +11,7 @@ backends.spotify = function() {
         /*
 
         sdfej3bncc: {
+            name: 'Test',
             onScreen: false,
             gotRelated: false,
             related: ["sdwefijh33","dfe3gh3e3q"],
@@ -29,7 +30,7 @@ backends.spotify = function() {
             );
             searchres.forEach(function(artist) {
                 artists[artist.val] = {
-                    onScreen: true,
+                    onScreen: false,
                     gotRelated: false,
                     related: [],
                     relatedOnScreen: 0
@@ -48,11 +49,13 @@ backends.spotify = function() {
         var related = artist.related;
         var length = related.length;
         for (var i = artist.relatedOnScreen; i < length; i++) {
-            var relid = artists[i];
+            var relid = related[i];
             var rel = artists[relid];
             if (!rel.onScreen) {
-                callback(relid)
+                callback({name: rel.name, val: relid});
+                break;
             }
+            rel.relatedOnScreen++;
         }
     }
 
@@ -62,8 +65,17 @@ backends.spotify = function() {
             superagent.get('https://api.spotify.com/v1/artists/' + encodeURI(id) + '/related-artists')
             .end(function(err, related) {
                 artist.gotRelated = true;
-                debugger;
-                artist.related = JSON.parse(related.text).artists.map(function(result) {return result.id;});
+                JSON.parse(related.text).artists.forEach(function(result) {
+                    var id = result.id;
+                    artists[id] = {
+                        name: result.name,
+                        onScreen: false,
+                        gotRelated: false,
+                        related: [],
+                        relatedOnScreen: 0
+                    }
+                    artist.related.push(id);
+                });
                 firstRelated(id, callback);
             });
         } else {

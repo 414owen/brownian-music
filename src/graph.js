@@ -3,7 +3,7 @@ function graph(backend, container) {
     var ratio = window.devicePixelRatio || 1;
     var width = container.offsetWidth * ratio;
     var height = container.offsetHeight * ratio;
-    var startVel = 10 * ratio;
+    var startVel = 1 * ratio;
     var canv = canvas()
                     .width(width)
                     .height(height)
@@ -68,6 +68,7 @@ function graph(backend, container) {
     }
     
     function frame() {
+        ctx.beginPath();
         ctx.font = font;
         ctx.textAlign = 'center';
         ctx.textBaseline="middle"; 
@@ -77,8 +78,8 @@ function graph(backend, container) {
         ctx.clearRect(0, 0, width, height);
         graph.forEach(function(node) {
             ctx.arc(node.x,node.y,radius,0,2*Math.PI);
-            ctx.fill();
         });
+        ctx.fill();
         ctx.fillStyle = "#333";
         graph.forEach(function(node) {
             ctx.fillText(node.text,node.x,node.y);
@@ -99,8 +100,8 @@ function graph(backend, container) {
             if (distance < radius) {
                 console.log(node.text);
                 backend.getRelated(node.val, function(artist) {
-                    result.addNode(artist.node, artist.val, node);
-                    backend.nodeOnScreen(artist.artist.val);
+                    result.addNode(artist.name, artist.val, node);
+                    backend.nodeOnScreen(artist.val);
                 });
             }
         });
