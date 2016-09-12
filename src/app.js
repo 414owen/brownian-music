@@ -1,9 +1,9 @@
 window.onload = function() {
 
 var searchResults = div().style(style.vertical);
-function performSearch(e, elified) {
+function performSearch(e) {
     searchResults.clear();
-    backend.search(elified.val.value, addSearchResults);
+    backend.search(e.target.value, addSearchResults);
 }
 
 function addSearchResults(artists) {
@@ -44,10 +44,11 @@ body().style(style.body, style.center)(
 
 };
 
+for (var i in Nutmeg) {
+    eval('var '+i+'=Nutmeg[i];');
+}
 
-nutmeg().global();
 var backends = {selected: 'spotify'};
-
 var foreground = '#ddd';
 var background = '#333';
 
