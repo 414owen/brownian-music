@@ -1,4 +1,4 @@
-function graph(backend, container) {
+var function graph(backend, container) {
     var radius = 40;
     var ratio = window.devicePixelRatio || 1;
     var width = container.offsetWidth * ratio;
@@ -108,4 +108,3 @@ function graph(backend, container) {
     });
     return result;
 }
-
