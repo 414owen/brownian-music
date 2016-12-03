@@ -52,7 +52,7 @@ window.onload = function() {
 	}
 
 	var backend = SpotifyPlugin();
-	var graphHolder = div.style(style.fillScreen);
+	var graphHolder = div.style(style.fill);
 	var inputvar = input('Hello World')
 		.style(style.input, {width: '100%'})
 		.placeholder('Artist')

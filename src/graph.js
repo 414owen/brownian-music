@@ -32,7 +32,8 @@ function DiscreteGraph(backend, container) {
 	var equilibrium = radius * 3;
 	var attract = 400;
 	var repel = 6000;
-	var drag = 0.01;
+	var drag = 0.99;
+	var speedlimit = 20;
 
 	function Vec(x, y) {
 		this.x = x;
@@ -62,6 +63,13 @@ function DiscreteGraph(backend, container) {
 		["abs", function() {
 			return Math.sqrt(this.x * this.x + this.y * this.y);
 		}],
+		["limit", function(extent) {
+			var abs = this.abs();
+			if (abs > extent) {
+				this.x *= extent/abs;
+				this.y *= extent/abs;
+			}
+		}],
 		["changeTowards", function(vec2, amt) {
 			var x = vec2.x - this.x;
 			var y = vec2.y - this.y;
@@ -84,6 +92,7 @@ function DiscreteGraph(backend, container) {
 	var ids = {};
 
 	result.addNode = function(from, ent) {
+		if (ent == null) return;
 		ids[ent.id] = true;
 		var node = {
 			fullText: ent.value,
@@ -174,7 +183,8 @@ function DiscreteGraph(backend, container) {
 			}
 			centx += node.pos.x - halfwidth;
 			centy += node.pos.y - halfheight;
-			node.vel.mulnum(0.98);
+			node.vel.mulnum(drag);
+			node.vel.limit(speedlimit);
 		}
 		centx /= nodes.length;
 		centy /= nodes.length;
