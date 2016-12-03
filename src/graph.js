@@ -90,7 +90,7 @@ function DiscreteGraph(backend, container) {
 					node.dx -= accelx;
 					node.dy -= accely;
 					node2.dx += accelx;
-					node.dy += accely;
+					node2.dy += accely;
 				}
 			}
 			if (node.dy > drag) node.dy -= drag;
