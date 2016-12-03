@@ -99,8 +99,9 @@ function DiscreteGraph(backend, container) {
 			node.pos = new Vec(halfwidth, halfheight);
 			node.vel = new Vec(0.05, 0.05);
 		} else {
-			node.pos = new Vec(from.pos.x + Math.random() * equilibrium, from.pos.y + equilibrium * Math.random());
-			node.vel = new Vec(Math.random() * 3, Math.random() * 3);
+			var dir = Math.random() * 2 * Math.PI;
+			node.pos = new Vec(from.pos.x + Math.cos(dir) * radius * 2, from.pos.y + radius * 2 * Math.sin(dir));
+			node.vel = new Vec(-Math.cos(dir) * 3, -Math.sin(dir) * 3);
 		}
 		nodes.push(node);
 		return node;
@@ -191,10 +192,8 @@ function DiscreteGraph(backend, container) {
 	canv.onclick(function(e) {
 		var x = lastx = (e.pageX - canv.val.offsetLeft) * ratio + centx;
 		var y = lasty = (e.pageY - canv.val.offsetTop) * ratio + centy;
-		console.log(x, y);
 		nodes.forEach(function(node) {
 			if (pointInNode(node.pos.x, node.pos.y, x, y)) {
-				console.log(node.text);
 				backend.getRelated(node.ent.id, ids, function(ent) {
 					result.addNode(node, ent);
 				});
