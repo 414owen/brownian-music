@@ -32,7 +32,10 @@ function DiscreteGraph(backend, container) {
 		return newText;
 	}
 
+	var ids = {};
+
 	result.addNode = function(from, ent) {
+		ids[ent.id] = true;
 		var node = {
 			fullText: ent.value,
 			text: truncate(ent.value),
@@ -49,10 +52,11 @@ function DiscreteGraph(backend, container) {
 			node.dy = 0.05;
 			node.dx = 0.05;
 		} else {
-			node.x = from.x + equilibrium;
-			node.y = from.y + equilibrium;
-			node.dy = from.dy;
-			node.dx = from.dx;
+			direction = Math.random() * 2 * Math.PI;
+			node.x = from.x + Math.sin(direction) * equilibrium;
+			node.y = from.y + equilibrium * Math.cos(direction);
+			node.dy = Math.random() * 3;
+			node.dx = Math.random() * 3;
 		}
 		nodes.push(node);
 		return node;
@@ -71,13 +75,13 @@ function DiscreteGraph(backend, container) {
 			var node = nodes[i];
 			for (var j = i; j < nodes.length; j++) {
 				var node2 = nodes[j];
-				var xdiff = node.x - node2.x;
-				var ydiff = node.y - node2.y;
-				var dist = Math.sqrt(Math.pow(xdiff, 2) + Math.pow(ydiff, 2)) * distscale;
-				var at = attract * (nodeMass * nodeMass) / (dist * dist);
-				//var rep = repel * (nodeMass * nodeMass) / (Math.pow(dist, reppow));
-				//var at = 0;
-				if (dist > radius * 2) {
+				if (node.ent.id != node2.ent.id) {
+					var xdiff = node.x - node2.x;
+					var ydiff = node.y - node2.y;
+					var dist = Math.sqrt(Math.pow(xdiff, 2) + Math.pow(ydiff, 2)) * distscale;
+					var at = attract * (nodeMass * nodeMass) / (dist * dist);
+					//var rep = repel * (nodeMass * nodeMass) / (Math.pow(dist, reppow));
+					//var at = 0;
 					var rep = repel * (nodeMass * nodeMass) / Math.pow(dist, reppow);
 					var force = at - rep;
 					var accel = force/nodeMass;
@@ -118,7 +122,7 @@ function DiscreteGraph(backend, container) {
 			var distance = Math.sqrt((hdist * hdist) + (vdist * vdist));
 			if (distance < radius) {
 				console.log(node.text);
-				backend.getRelated(node.ent.id, function(ent) {
+				backend.getRelated(node.ent.id, ids, function(ent) {
 					result.addNode(node, ent);
 				});
 			}

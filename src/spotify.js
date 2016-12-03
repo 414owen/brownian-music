@@ -21,12 +21,29 @@ function SpotifyPlugin() {
 		artists[id].onScreen = true;
 	};
 
-	result.getRelated = function(id, callback) {
-		superagent.get('https://api.spotify.com/v1/artists/' + encodeURI(id) + '/related-artists')
-			.end(function(err, related) {
-				var results = JSON.parse(related.text).artists;
-				callback({id: results[0].id, value: results[0].name});
-			});
+	related = {};
+
+	function firstRelated(id, ids) {
+		var rel = related[id];
+		for (var i = 0; i < rel.length; i++) {
+			if (ids[rel[i].id] === undefined) {
+				return rel[i];
+			}
+		}
+		return null;
+	}
+
+	result.getRelated = function(id, ids, callback) {
+		if (related[id] != null) {
+			callback(firstRelated(id, ids));
+		} else {
+			superagent.get('https://api.spotify.com/v1/artists/' + encodeURI(id) + '/related-artists')
+				.end(function(err, relatedans) {
+					var results = JSON.parse(relatedans.text).artists;
+					related[id] = results.map(function(res) {return {value: res.name, id: res.id};});
+					callback(firstRelated(id, ids));
+				});
+		}
 	};
 	return result;
 };
