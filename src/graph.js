@@ -1,29 +1,71 @@
 function DiscreteGraph(backend, container) {
 	eval(Nutmeg.localScope);
-	var radius = 40;
 	var ratio = window.devicePixelRatio || 1;
-	var width = container.val.offsetWidth * ratio;
-	var height = container.val.offsetHeight * ratio;
+	var radius = 40 * ratio;
+	var width;
+	var height;
 	var startVel = 1 * ratio;
 	var canv = canvas()
-		.width(width)
-		.height(height)
 		.style({width: '100%', height: '100%'});
+	function setDimensions() {
+		width = container.val.offsetWidth * ratio;
+		height = container.val.offsetHeight * ratio;
+		canv.width(width)
+		canv.height(height)
+	}
+	window.onresize = setDimensions;
+	setDimensions();
 	container(canv);
 	var ctx = canv.val.getContext('2d');
 	var result = {};
-	var font = "14px Raleway";
+	var font = Math.floor(ratio * 14) + "px Raleway";
 	var nodes = [];
-	var nodeMass = 500000;
+	var nodeMass = 5;
 	var reppow = 2.5;
 	var equilibrium = radius * 3;
-	var attract = 10000;
-	var repel = 900000;
-	var distscale = 70;
+	var attract = 100;
+	var repel = 1300;
 	var drag = 0.01;
 
+	function Vec(x, y) {
+		this.x = x;
+		this.y = y;
+	}
+
+	[
+		["mul", function(vec2) {
+			this.x *= vec2.x;
+			this.y *= vec2.y;
+		}],
+		["mulnum", function(num) {
+			this.x *= num;
+			this.y *= num;
+		}],
+		["sub", function(vec2) {
+			this.x -= vec2.x;
+			this.y -= vec2.y;
+		}],
+		["add", function(vec2) {
+			this.x += vec2.x;
+			this.y += vec2.y;
+		}],
+		["dist", function(vec2) {
+			return new Vec(vec2.x - this.x, vec2.y - this.y);
+		}],
+		["abs", function() {
+			return Math.sqrt(this.x * this.x + this.y * this.y);
+		}],
+		["changeTowards", function(vec2, amt) {
+			var x = vec2.x - this.x;
+			var y = vec2.y - this.y;
+			this.x += amt * (x / (x + y));
+			this.y += amt * (y / (x + y));
+		}]
+	].forEach(function(op) {
+		Vec.prototype[op[0]] = op[1];
+	});
+
 	function truncate(text) {
-		ctx.font = font;
 		var newText = text;
 		var letters = text.length;
 		while (ctx.measureText(newText).width > radius * 2 - 10) {
@@ -47,20 +89,20 @@ function DiscreteGraph(backend, container) {
 			});
 		}
 		if (from === null) {
-			node.x = width / 2;
-			node.y = height / 2;
-			node.dy = 0.05;
-			node.dx = 0.05;
+			node.pos = new Vec(width / 2, height / 2);
+			node.vel = new Vec(0.05, 0.05);
 		} else {
-			direction = Math.random() * 2 * Math.PI;
-			node.x = from.x + Math.sin(direction) * equilibrium;
-			node.y = from.y + equilibrium * Math.cos(direction);
-			node.dy = Math.random() * 3;
-			node.dx = Math.random() * 3;
+			node.pos = new Vec(from.pos.x + Math.random() * equilibrium, from.pos.y + equilibrium * Math.random());
+			node.vel = new Vec(Math.random() * 3, Math.random() * 3);
 		}
 		nodes.push(node);
 		return node;
 	}
+
+	var centx = width/2;
+	var centy = height/2;
+	var lastx;
+	var lasty;
 
 	function frame() {
 		ctx.beginPath();
@@ -71,54 +113,55 @@ function DiscreteGraph(backend, container) {
 		ctx.fillStyle = "#ddd";
 		ctx.lineWidth = 2;
 		ctx.clearRect(0, 0, width, height);
+		nodes.forEach(function(node) {
+			var pos = node.pos;
+			var x = pos.x;
+			var y = pos.y;
+			ctx.moveTo(x, y);
+			ctx.arc(x - centx, y - centy, radius, 0, 2*Math.PI);
+		});
+		ctx.fill();
+		ctx.fillStyle = "#333";
+		nodes.forEach(function(node) {
+			var pos = node.pos;
+			ctx.fillText(node.text, pos.x - centx, pos.y - centy);
+			pos.add(node.vel);
+		});
+		centx = 0;
+		centy = 0;
 		for (var i = 0; i < nodes.length; i++) {
 			var node = nodes[i];
 			for (var j = i; j < nodes.length; j++) {
 				var node2 = nodes[j];
 				if (node.ent.id != node2.ent.id) {
-					var xdiff = node.x - node2.x;
-					var ydiff = node.y - node2.y;
-					var dist = Math.sqrt(Math.pow(xdiff, 2) + Math.pow(ydiff, 2)) * distscale;
-					var at = attract * (nodeMass * nodeMass) / (dist * dist);
-					//var rep = repel * (nodeMass * nodeMass) / (Math.pow(dist, reppow));
-					//var at = 0;
-					var rep = repel * (nodeMass * nodeMass) / Math.pow(dist, reppow);
-					var force = at - rep;
-					var accel = force/nodeMass;
-					var accelx = accel * xdiff / dist;
-					var accely = accel * ydiff / dist;
-					node.dx -= accelx;
-					node.dy -= accely;
-					node2.dx += accelx;
-					node2.dy += accely;
+					var dist = node.pos.dist(node2.pos);
+					var distscaled = dist;
+					var delta = dist.abs();
+					var at = attract * (nodeMass * nodeMass) / (delta * delta);
+					var rep = repel * (nodeMass * nodeMass) / Math.pow(delta, reppow);
+					var accel = (at - rep)/nodeMass;
+					dist.mulnum(accel);
+					node.vel.add(dist);
+					node2.vel.sub(dist);
 				}
 			}
-			if (node.dy > drag) node.dy -= drag;
-			else if (node.dy < -drag) node.dy += drag;
-			if (node.dx > drag) node.dx -= drag;
-			else if (node.dx < -drag) node.dx += drag;
+			centx += node.pos.x - width/2;
+			centy += node.pos.y - height/2;
+			node.vel.mulnum(0.98);
 		}
-		nodes.forEach(function(node) {
-			ctx.moveTo(node.x, node.y);
-			ctx.arc(node.x,node.y,radius,0,2*Math.PI);
-		});
-		ctx.fill();
-		ctx.fillStyle = "#333";
-		nodes.forEach(function(node) {
-			ctx.fillText(node.text,node.x,node.y);
-			node.x += node.dx;
-			node.y += node.dy;
-		});
+		centx /= nodes.length;
+		centy /= nodes.length;
 		window.requestAnimationFrame(frame);
 	}
 	frame();
 
 	canv.onclick(function(e) {
-		var x = e.pageX - canv.val.offsetLeft;
-		var y = e.pageY - canv.val.offsetTop;
+		var x = lastx = (e.pageX - canv.val.offsetLeft) * ratio + centx;
+		var y = lasty = (e.pageY - canv.val.offsetTop) * ratio + centy;
+		console.log(x, y);
 		nodes.forEach(function(node) {
-			var hdist = Math.abs(node.x - x);
-			var vdist = Math.abs(node.y - y);
+			var hdist = Math.abs(node.pos.x - x);
+			var vdist = Math.abs(node.pos.y - y);
 			var distance = Math.sqrt((hdist * hdist) + (vdist * vdist));
 			if (distance < radius) {
 				console.log(node.text);
