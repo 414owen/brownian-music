@@ -4,12 +4,16 @@ function DiscreteGraph(backend, container) {
 	var radius = 40 * ratio;
 	var width;
 	var height;
+	var halfwidth;
+	var halfheight;
 	var startVel = 1 * ratio;
 	var canv = canvas()
 		.style({width: '100%', height: '100%'});
 	function setDimensions() {
 		width = container.val.offsetWidth * ratio;
 		height = container.val.offsetHeight * ratio;
+		halfwidth = width / 2;
+		halfheight = height / 2;
 		canv.width(width)
 		canv.height(height)
 	}
@@ -18,13 +22,16 @@ function DiscreteGraph(backend, container) {
 	container(canv);
 	var ctx = canv.val.getContext('2d');
 	var result = {};
-	var font = Math.floor(ratio * 14) + "px Raleway";
+	fontSize = Math.floor(ratio * 14);
+	hoverFontSize = Math.floor(fontSize * 1.4);
+	var font =  fontSize + "px Raleway";
+	var hoverFont = hoverFontSize + "px Raleway";
 	var nodes = [];
 	var nodeMass = 5;
 	var reppow = 2.5;
 	var equilibrium = radius * 3;
-	var attract = 100;
-	var repel = 1300;
+	var attract = 400;
+	var repel = 6000;
 	var drag = 0.01;
 
 	function Vec(x, y) {
@@ -89,7 +96,7 @@ function DiscreteGraph(backend, container) {
 			});
 		}
 		if (from === null) {
-			node.pos = new Vec(width / 2, height / 2);
+			node.pos = new Vec(halfwidth, halfheight);
 			node.vel = new Vec(0.05, 0.05);
 		} else {
 			node.pos = new Vec(from.pos.x + Math.random() * equilibrium, from.pos.y + equilibrium * Math.random());
@@ -99,29 +106,48 @@ function DiscreteGraph(backend, container) {
 		return node;
 	}
 
-	var centx = width/2;
-	var centy = height/2;
+	var centx = halfwidth;
+	var centy = halfheight;
 	var lastx;
 	var lasty;
 
+	var cursorX;
+	var cursorY;
+	document.onmousemove = function(e){
+		cursorX = e.pageX;
+		cursorY = e.pageY;
+	}
+
+	var hover = "";
 	function frame() {
 		ctx.beginPath();
-		ctx.font = font;
 		ctx.textAlign = 'center';
 		ctx.textBaseline="middle"; 
 		ctx.strokeStyle = "#ddd";
 		ctx.fillStyle = "#ddd";
 		ctx.lineWidth = 2;
 		ctx.clearRect(0, 0, width, height);
+		var cx = lastx = (cursorX - canv.val.offsetLeft) * ratio + centx;
+		var cy = lasty = (cursorY - canv.val.offsetTop) * ratio + centy;
+		var hovered = false;
 		nodes.forEach(function(node) {
 			var pos = node.pos;
 			var x = pos.x;
 			var y = pos.y;
+			if (pointInNode(x, y, cx, cy)) {
+				hovered = true;
+				hover = node.fullText;
+			}
 			ctx.moveTo(x, y);
 			ctx.arc(x - centx, y - centy, radius, 0, 2*Math.PI);
 		});
 		ctx.fill();
+		if (hovered) {
+			ctx.font = hoverFont;
+			ctx.fillText(hover, halfwidth, height - fontSize - 10);
+		}
 		ctx.fillStyle = "#333";
+		ctx.font = font;
 		nodes.forEach(function(node) {
 			var pos = node.pos;
 			ctx.fillText(node.text, pos.x - centx, pos.y - centy);
@@ -145,8 +171,8 @@ function DiscreteGraph(backend, container) {
 					node2.vel.sub(dist);
 				}
 			}
-			centx += node.pos.x - width/2;
-			centy += node.pos.y - height/2;
+			centx += node.pos.x - halfwidth;
+			centy += node.pos.y - halfheight;
 			node.vel.mulnum(0.98);
 		}
 		centx /= nodes.length;
@@ -155,15 +181,19 @@ function DiscreteGraph(backend, container) {
 	}
 	frame();
 
+	function pointInNode(nx, ny, x, y) {
+		var hdist = Math.abs(nx - x);
+		var vdist = Math.abs(ny - y);
+		var distance = Math.sqrt((hdist * hdist) + (vdist * vdist));
+		return distance < radius;
+	}
+
 	canv.onclick(function(e) {
 		var x = lastx = (e.pageX - canv.val.offsetLeft) * ratio + centx;
 		var y = lasty = (e.pageY - canv.val.offsetTop) * ratio + centy;
 		console.log(x, y);
 		nodes.forEach(function(node) {
-			var hdist = Math.abs(node.pos.x - x);
-			var vdist = Math.abs(node.pos.y - y);
-			var distance = Math.sqrt((hdist * hdist) + (vdist * vdist));
-			if (distance < radius) {
+			if (pointInNode(node.pos.x, node.pos.y, x, y)) {
 				console.log(node.text);
 				backend.getRelated(node.ent.id, ids, function(ent) {
 					result.addNode(node, ent);
