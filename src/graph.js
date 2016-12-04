@@ -209,8 +209,10 @@ function DiscreteGraph(backend, container) {
 			ctx.fillText(node.text, pos.x - centx, pos.y - centy);
 			node.force.set(0, 0);
 		});
-		centx = 0;
-		centy = 0;
+
+		// The position that the center of the view should lerp towards.
+		var centTargetX = 0;
+		var centTargetY = 0;
 		for (var i = 0; i < nodes.length; i++) {
 			var node = nodes[i];
 			var nodeMass = phy.nodeMass;
@@ -229,15 +231,22 @@ function DiscreteGraph(backend, container) {
 					node2.force.sub(dist);
 				}
 			}
-			centx += node.pos.x - halfwidth;
-			centy += node.pos.y - halfheight;
+			centTargetX += node.pos.x - halfwidth;
+			centTargetY += node.pos.y - halfheight;
 			node.vel.add(node.force.divnum(nodeMass));
 			node.vel.lim(phy.speedlimit);
 			node.vel.mulnum(phy.drag);
 			node.pos.add(node.vel);
 		}
-		centx /= nodes.length;
-		centy /= nodes.length;
+		if (nodes.length > 0) {
+			centTargetX /= nodes.length;
+			centTargetY /= nodes.length;
+		}
+
+		var lerpVal = 0.05;
+		centx = centx * (1 - lerpVal) + centTargetX * lerpVal;
+		centy = centy * (1 - lerpVal) + centTargetY * lerpVal;
+
 		window.requestAnimationFrame(frame);
 	}
 	frame();
