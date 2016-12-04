@@ -129,6 +129,7 @@ function DiscreteGraph(backend, container) {
 
 	function truncate(text) {
 		var newText = text;
+		ctx.font = font;
 		var letters = text.length;
 		while (ctx.measureText(newText).width > radius * 2 - 10) {
 			newText = text.substring(0, --letters) + '...';
@@ -145,6 +146,8 @@ function DiscreteGraph(backend, container) {
 			fullText: ent.value,
 			text: truncate(ent.value),
 			ent: ent,
+			fgcol: col2,
+			bgcol: col1,
 			force: new Vec(0, 0)
 		};
 		node.onclick = function() {
