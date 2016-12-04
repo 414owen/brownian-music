@@ -34,20 +34,21 @@ function DiscreteGraph(backend, container) {
 	var phy = {};
 
 	var phys = [
-		['nodeMass', 'Node Mass', 5],
-		['attract', 'Attraction Multiplier', 50],
-		['repel', 'Repulsion Multiplier', 150],
-		['atpow', 'Attraction Inverse Distance Indice', 1.1],
-		['reppow', 'Repulsion Inverse Distance Indice', 1.3],
+		['nodeMass', 'Node Mass', 10],
+		['attract', 'Attraction Multiplier', 100],
+		['repel', 'Repulsion Multiplier', 500],
+		['atpow', 'Attraction Inverse Distance Indice', 1.18],
+		['reppow', 'Repulsion Inverse Distance Indice', 1.45],
 		['drag', 'Velocity Multiplier', 0.97],
-		['speedlimit', 'Speed Limit', 20]
+		['speedlimit', 'Speed Limit', 20],
+		['lerpVal', 'Camera Pan Rate (lerp value)', 0.05]
 	];
 
 	phys.forEach(function(p) {
 		phy[p[0]] = p[2];
 	});
 
-	var descrip = div.style({color: col2, textAlign: 'left'});
+	var descrip = div.style({color: col2, backgroundColor: col1, display: 'relative'});
 	container(
 		canv,
 		div.style({color: col2, position: "absolute", top: "4rem", left: "4rem"})(
@@ -157,7 +158,7 @@ function DiscreteGraph(backend, container) {
 		} else {
 			var dir = Math.random() * 2 * Math.PI;
 			node.pos = new Vec(from.pos.x + Math.cos(dir) * 3, from.pos.y + Math.sin(dir) * 3);
-			node.vel = new Vec(Math.cos(dir), Math.sin(dir));
+			node.vel = new Vec(0,0);
 		}
 		nodes.push(node);
 		return node;
@@ -180,15 +181,15 @@ function DiscreteGraph(backend, container) {
 		ctx.beginPath();
 		ctx.textAlign = 'center';
 		ctx.textBaseline="middle"; 
-		ctx.strokeStyle = col2;
 		ctx.fillStyle = col2;
-		ctx.lineWidth = 2;
+		ctx.lineWidth = 0;
 		ctx.clearRect(0, 0, width, height);
 		var cx = lastx = (cursorX - canv.val.offsetLeft) * ratio + centx;
 		var cy = lasty = (cursorY - canv.val.offsetTop) * ratio + centy;
 		var hovered = false;
 		nodes.forEach(function(node) {
 			var pos = node.pos;
+			node.force.set(0, 0);
 			var x = pos.x;
 			var y = pos.y;
 			if (pointInNode(x, y, cx, cy)) {
@@ -199,52 +200,60 @@ function DiscreteGraph(backend, container) {
 			ctx.arc(x - centx, y - centy, radius, 0, 2*Math.PI);
 		});
 		ctx.fill();
-		if (hovered) {
-			ctx.font = hoverFont;
-			ctx.fillText(hover, halfwidth, height - fontSize - 10);
-		}
-		ctx.fillStyle = col1;
+		ctx.beginPath();
 		ctx.font = font;
-		nodes.forEach(function(node) {
-			var pos = node.pos;
-			ctx.fillText(node.text, pos.x - centx, pos.y - centy);
-			node.force.set(0, 0);
-		});
+		ctx.fillStyle = col1;
 
 		// The position that the center of the view should lerp towards.
 		var centTargetX = 0;
 		var centTargetY = 0;
-		for (var i = 0; i < nodes.length; i++) {
+		var nodeAmt = nodes.length;
+		for (var i = 0; i < nodeAmt; i++) {
 			var node = nodes[i];
 			var nodeMass = phy.nodeMass;
-			for (var j = i + 1; j < nodes.length; j++) {
+			var pos = node.pos;
+			var vel = node.vel;
+			var force = node.force;
+			ctx.fillText(node.text, pos.x - centx, pos.y - centy);
+			for (var j = i + 1; j < nodeAmt; j++) {
 				var node2 = nodes[j];
-				var dist = node.pos.distnew(node2.pos);
+				var dist = pos.distnew(node2.pos);
 				var delta = dist.abs();
 				if (delta > 0) {
 					var distscaled = dist;
 					var at = phy.attract * (nodeMass * nodeMass) / Math.pow(delta, phy.atpow);
 					var rep = phy.repel * (nodeMass * nodeMass) / Math.pow(delta, phy.reppow);
-					var force = at - rep;
+					var newforce = at - rep;
 					dist.lim(1);
-					dist.mulnum(force);
-					node.force.add(dist);
+					dist.mulnum(newforce);
+					force.add(dist);
 					node2.force.sub(dist);
 				}
 			}
-			centTargetX += node.pos.x - halfwidth;
-			centTargetY += node.pos.y - halfheight;
-			node.vel.add(node.force.divnum(nodeMass));
-			node.vel.lim(phy.speedlimit);
-			node.vel.mulnum(phy.drag);
-			node.pos.add(node.vel);
+			centTargetX += pos.x - halfwidth;
+			centTargetY += pos.y - halfheight;
+			vel.add(force.divnum(nodeMass));
+			vel.lim(phy.speedlimit);
+			vel.mulnum(phy.drag);
+			pos.add(vel);
 		}
 		if (nodes.length > 0) {
 			centTargetX /= nodes.length;
 			centTargetY /= nodes.length;
 		}
-
-		var lerpVal = 0.05;
+		if (hovered) {
+			ctx.beginPath();
+			ctx.font = hoverFont;
+			var dims = ctx.measureText(hover);
+			ctx.fillStyle = col1;
+			ctx.fillRect(halfwidth - dims.width/2 - 10, height - fontSize - 20 - hoverFontSize / 2, dims.width + 20, hoverFontSize + 50);
+			ctx.fill();
+			ctx.beginPath();
+			ctx.fillStyle = col2;
+			ctx.fillText(hover, halfwidth, height - fontSize - 10);
+			ctx.fill();
+		}
+		var lerpVal = phy.lerpVal;
 		centx = centx * (1 - lerpVal) + centTargetX * lerpVal;
 		centy = centy * (1 - lerpVal) + centTargetY * lerpVal;
 
