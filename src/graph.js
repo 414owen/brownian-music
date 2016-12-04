@@ -9,6 +9,8 @@ function DiscreteGraph(backend, container) {
 	var startVel = 1 * ratio;
 	var canv = canvas()
 		.style({width: '100%', height: '100%'});
+	var col1 = '#333';
+	var col2 = '#ddd';
 	function setDimensions() {
 		width = container.val.offsetWidth * ratio;
 		height = container.val.offsetHeight * ratio;
@@ -17,9 +19,10 @@ function DiscreteGraph(backend, container) {
 		canv.width(width)
 		canv.height(height)
 	}
+
+
 	window.onresize = setDimensions;
 	setDimensions();
-	container(canv);
 	var ctx = canv.val.getContext('2d');
 	var result = {};
 	fontSize = Math.floor(ratio * 14);
@@ -27,13 +30,39 @@ function DiscreteGraph(backend, container) {
 	var font =  fontSize + "px Raleway";
 	var hoverFont = hoverFontSize + "px Raleway";
 	var nodes = [];
-	var nodeMass = 5;
-	var reppow = 2.5;
 	var equilibrium = radius * 3;
-	var attract = 400;
-	var repel = 6000;
-	var drag = 0.99;
-	var speedlimit = 20;
+	var phy = {};
+
+	var phys = [
+		['nodeMass', 'Node Mass', 5],
+		['attract', 'Attraction Multiplier', 50],
+		['repel', 'Repulsion Multiplier', 150],
+		['atpow', 'Attraction Inverse Distance Indice', 1.1],
+		['reppow', 'Repulsion Inverse Distance Indice', 1.3],
+		['drag', 'Velocity Multiplier', 0.97],
+		['speedlimit', 'Speed Limit', 20]
+	];
+
+	phys.forEach(function(p) {
+		phy[p[0]] = p[2];
+	});
+
+	container(
+		canv,
+		div.style({color: col2, position: "absolute", top: "20px"})(
+			phys.map(function(p) {
+				return div.style({textAlign: 'left'})(
+					p[1],
+					br(),
+					input.type('text').style({backgroundColor: col2, border: 'none'})
+					.value(phy[p[0]]).onchange(function(e) {
+						phy[p[0]] = e.target.value;
+					}),
+					br(), br()
+				);
+			})
+		)
+	);
 
 	function Vec(x, y) {
 		this.x = x;
@@ -41,34 +70,12 @@ function DiscreteGraph(backend, container) {
 	}
 
 	[
-		["mul", function(vec2) {
-			this.x *= vec2.x;
-			this.y *= vec2.y;
-		}],
-		["mulnum", function(num) {
-			this.x *= num;
-			this.y *= num;
-		}],
-		["sub", function(vec2) {
-			this.x -= vec2.x;
-			this.y -= vec2.y;
-		}],
-		["add", function(vec2) {
-			this.x += vec2.x;
-			this.y += vec2.y;
-		}],
-		["dist", function(vec2) {
-			return new Vec(vec2.x - this.x, vec2.y - this.y);
+		["set", function(x, y) {
+			this.x = x;
+			this.y = y;
 		}],
 		["abs", function() {
 			return Math.sqrt(this.x * this.x + this.y * this.y);
-		}],
-		["limit", function(extent) {
-			var abs = this.abs();
-			if (abs > extent) {
-				this.x *= extent/abs;
-				this.y *= extent/abs;
-			}
 		}],
 		["changeTowards", function(vec2, amt) {
 			var x = vec2.x - this.x;
@@ -78,6 +85,44 @@ function DiscreteGraph(backend, container) {
 		}]
 	].forEach(function(op) {
 		Vec.prototype[op[0]] = op[1];
+	});
+
+	[
+		["mulnum", function(dest, vec1, num) {
+			dest.set(vec1.x * num, vec1.y * num);
+		}],
+		["divnum", function(dest, vec1, num) {
+			dest.set(vec1.x / num, vec1.y / num);
+		}],
+		["mul", function(dest, vec1, vec2) {
+			dest.set(vec1.x * vec2.x, vec1.y * vec2.y);
+		}],
+		["add", function(dest, vec1, vec2) {
+			dest.set(vec1.x + vec2.x, vec1.y + vec2.y);
+		}],
+		["sub", function(dest, vec1, vec2) {
+			dest.set(vec1.x - vec2.x, vec1.y - vec2.y);
+		}],
+		["dist", function(dest, vec1, vec2) {
+			dest.set(vec2.x - vec1.x, vec2.y - vec1.y);
+		}],
+		["lim", function(dest, vec1, extent) {
+			var abs = vec1.abs();
+			if (abs > extent) {
+				dest.set(vec1.x * extent / abs, vec1.y * extent / abs)
+			}
+		}]
+	].forEach(function(op) {
+		Vec.prototype[op[0] + "into"] = op[1];
+		Vec.prototype[op[0] + "new"] = function(vec2) {
+			var n = new Vec(0, 0);
+			op[1](n, this, vec2);
+			return n;
+		}
+		Vec.prototype[op[0]] = function(vec2) {
+			op[1](this, this, vec2);
+			return this;
+		}
 	});
 
 	function truncate(text) {
@@ -98,6 +143,7 @@ function DiscreteGraph(backend, container) {
 			fullText: ent.value,
 			text: truncate(ent.value),
 			ent: ent,
+			force: new Vec(0, 0)
 		};
 		node.onclick = function() {
 			backend.getRelated(end.id, function(ent) {
@@ -109,8 +155,8 @@ function DiscreteGraph(backend, container) {
 			node.vel = new Vec(0.05, 0.05);
 		} else {
 			var dir = Math.random() * 2 * Math.PI;
-			node.pos = new Vec(from.pos.x + Math.cos(dir) * radius * 2, from.pos.y + radius * 2 * Math.sin(dir));
-			node.vel = new Vec(-Math.cos(dir) * 3, -Math.sin(dir) * 3);
+			node.pos = new Vec(from.pos.x + Math.cos(dir) * 3, from.pos.y + Math.cos(dir) * 3);
+			node.vel = new Vec(Math.cos(dir), Math.sin(dir));
 		}
 		nodes.push(node);
 		return node;
@@ -133,8 +179,8 @@ function DiscreteGraph(backend, container) {
 		ctx.beginPath();
 		ctx.textAlign = 'center';
 		ctx.textBaseline="middle"; 
-		ctx.strokeStyle = "#ddd";
-		ctx.fillStyle = "#ddd";
+		ctx.strokeStyle = col2;
+		ctx.fillStyle = col2;
 		ctx.lineWidth = 2;
 		ctx.clearRect(0, 0, width, height);
 		var cx = lastx = (cursorX - canv.val.offsetLeft) * ratio + centx;
@@ -156,35 +202,39 @@ function DiscreteGraph(backend, container) {
 			ctx.font = hoverFont;
 			ctx.fillText(hover, halfwidth, height - fontSize - 10);
 		}
-		ctx.fillStyle = "#333";
+		ctx.fillStyle = col1;
 		ctx.font = font;
 		nodes.forEach(function(node) {
 			var pos = node.pos;
 			ctx.fillText(node.text, pos.x - centx, pos.y - centy);
-			pos.add(node.vel);
+			node.force.set(0, 0);
 		});
 		centx = 0;
 		centy = 0;
 		for (var i = 0; i < nodes.length; i++) {
 			var node = nodes[i];
-			for (var j = i; j < nodes.length; j++) {
+			var nodeMass = phy.nodeMass;
+			for (var j = i + 1; j < nodes.length; j++) {
 				var node2 = nodes[j];
-				if (node.ent.id != node2.ent.id) {
-					var dist = node.pos.dist(node2.pos);
+				var dist = node.pos.distnew(node2.pos);
+				var delta = dist.abs();
+				if (delta > 0) {
 					var distscaled = dist;
-					var delta = dist.abs();
-					var at = attract * (nodeMass * nodeMass) / (delta * delta);
-					var rep = repel * (nodeMass * nodeMass) / Math.pow(delta, reppow);
-					var accel = (at - rep)/nodeMass;
-					dist.mulnum(accel);
-					node.vel.add(dist);
-					node2.vel.sub(dist);
+					var at = phy.attract * (nodeMass * nodeMass) / Math.pow(delta, phy.atpow);
+					var rep = phy.repel * (nodeMass * nodeMass) / Math.pow(delta, phy.reppow);
+					var force = at - rep;
+					dist.lim(1);
+					dist.mulnum(force);
+					node.force.add(dist);
+					node2.force.sub(dist);
 				}
 			}
 			centx += node.pos.x - halfwidth;
 			centy += node.pos.y - halfheight;
-			node.vel.mulnum(drag);
-			node.vel.limit(speedlimit);
+			node.vel.add(node.force.divnum(nodeMass));
+			node.vel.lim(phy.speedlimit);
+			node.vel.mulnum(phy.drag);
+			node.pos.add(node.vel);
 		}
 		centx /= nodes.length;
 		centy /= nodes.length;
@@ -202,13 +252,15 @@ function DiscreteGraph(backend, container) {
 	canv.onclick(function(e) {
 		var x = lastx = (e.pageX - canv.val.offsetLeft) * ratio + centx;
 		var y = lasty = (e.pageY - canv.val.offsetTop) * ratio + centy;
-		nodes.forEach(function(node) {
+		for (var i = 0; i < nodes.length; i++) {
+			var node = nodes[i];
 			if (pointInNode(node.pos.x, node.pos.y, x, y)) {
 				backend.getRelated(node.ent.id, ids, function(ent) {
 					result.addNode(node, ent);
 				});
+				break;
 			}
-		});
+		}
 	});
 	return result;
 }
