@@ -60,6 +60,7 @@ function DiscreteGraph(backend, container) {
 					}).onmouseover(describe).onmouseout(descrip.clear)
 				);
 			}),
+			br(),
 			descrip
 		)
 	);
