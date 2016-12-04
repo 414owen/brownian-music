@@ -11,6 +11,7 @@ function DiscreteGraph(backend, container) {
 		.style({width: '100%', height: '100%'});
 	var col1 = '#333';
 	var col2 = '#ddd';
+	var col3 = '#daa';
 	function setDimensions() {
 		width = container.val.offsetWidth * ratio;
 		height = container.val.offsetHeight * ratio;
@@ -53,11 +54,17 @@ function DiscreteGraph(backend, container) {
 		canv,
 		div.style({color: col2, position: "absolute", top: "4rem", left: "4rem"})(
 			phys.map(function(p) {
+				var inp = input.type('text').style({backgroundColor: col2, border: 'none'});
 				function describe() {descrip.clear()(p[1]);}
 				return div.style({textAlign: 'left'})(
-					input.type('text').style({backgroundColor: col2, border: 'none'})
-					.value(phy[p[0]]).onchange(function(e) {
-						phy[p[0]] = e.target.value;
+					inp.value(phy[p[0]]).onchange(function(e) {
+						var num = parseFloat(e.target.value);
+						if (isNaN(num)) {
+							inp.style({backgroundColor: col3});
+						} else {
+							inp.style({backgroundColor: col2});
+							phy[p[0]] = e.target.value;
+						}
 					}).onmouseover(describe).onmouseout(descrip.clear)
 				);
 			}),
