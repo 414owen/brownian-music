@@ -49,6 +49,7 @@ function DiscreteGraph(backend, container) {
 		phy[p[0]] = p[2];
 	});
 
+	var numreg = new RegExp("^[-]?[0-9]+[\.]?[0-9]+$");
 	var descrip = div.style({color: col2, backgroundColor: col1, display: 'relative'});
 	container(
 		canv,
@@ -58,8 +59,7 @@ function DiscreteGraph(backend, container) {
 				function describe() {descrip.clear()(p[1]);}
 				return div.style({textAlign: 'left'})(
 					inp.value(phy[p[0]]).onchange(function(e) {
-						var num = parseFloat(e.target.value);
-						if (isNaN(num)) {
+						if (!numreg.test(e.target.value)) {
 							inp.style({backgroundColor: col3});
 						} else {
 							inp.style({backgroundColor: col2});
