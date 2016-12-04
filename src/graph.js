@@ -47,20 +47,20 @@ function DiscreteGraph(backend, container) {
 		phy[p[0]] = p[2];
 	});
 
+	var descrip = div.style({color: col2, textAlign: 'left'});
 	container(
 		canv,
-		div.style({color: col2, position: "absolute", top: "20px"})(
+		div.style({color: col2, position: "absolute", top: "4rem", left: "4rem"})(
 			phys.map(function(p) {
+				function describe() {descrip.clear()(p[1]);}
 				return div.style({textAlign: 'left'})(
-					p[1],
-					br(),
 					input.type('text').style({backgroundColor: col2, border: 'none'})
 					.value(phy[p[0]]).onchange(function(e) {
 						phy[p[0]] = e.target.value;
-					}),
-					br(), br()
+					}).onmouseover(describe).onmouseout(descrip.clear)
 				);
-			})
+			}),
+			descrip
 		)
 	);
 
@@ -155,7 +155,7 @@ function DiscreteGraph(backend, container) {
 			node.vel = new Vec(0.05, 0.05);
 		} else {
 			var dir = Math.random() * 2 * Math.PI;
-			node.pos = new Vec(from.pos.x + Math.cos(dir) * 3, from.pos.y + Math.cos(dir) * 3);
+			node.pos = new Vec(from.pos.x + Math.cos(dir) * 3, from.pos.y + Math.sin(dir) * 3);
 			node.vel = new Vec(Math.cos(dir), Math.sin(dir));
 		}
 		nodes.push(node);
