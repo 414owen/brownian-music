@@ -49,7 +49,7 @@ function DiscreteGraph(backend, container) {
 		phy[p[0]] = p[2];
 	});
 
-	var numreg = new RegExp("^[-]?[0-9]+[\.]?[0-9]*$");
+	var numreg = new RegExp("^[-]?[0-9]*[\.]?[0-9]+$");
 	var descrip = div.style({color: col2, backgroundColor: col1, display: 'relative'});
 	container(
 		canv,
