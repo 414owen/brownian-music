@@ -187,6 +187,8 @@ function DiscreteGraph(backend, container) {
 	}
 
 	var hover = "";
+	var hovermath = [];
+	var hoverHeight = height - hoverFontSize - 10;
 	function frame() {
 		ctx.beginPath();
 		ctx.textAlign = 'center';
@@ -205,6 +207,9 @@ function DiscreteGraph(backend, container) {
 			if (pointInNode(x, y, cx, cy)) {
 				hovered = true;
 				hover = node.fullText;
+				ctx.font = hoverFont;
+				var dims = ctx.measureText(hover);
+				hovermath = [halfwidth - dims.width/2 - 10, hoverHeight - 20, dims.width + 20, hoverFontSize + 50];
 			}
 			ctx.moveTo(x, y);
 			ctx.arc(x - centx, y - centy, radius, 0, 2*Math.PI);
@@ -253,14 +258,13 @@ function DiscreteGraph(backend, container) {
 		}
 		if (hovered) {
 			ctx.beginPath();
-			ctx.font = hoverFont;
-			var dims = ctx.measureText(hover);
 			ctx.fillStyle = col1;
-			ctx.fillRect(halfwidth - dims.width/2 - 10, height - fontSize - 20 - hoverFontSize / 2, dims.width + 20, hoverFontSize + 50);
+			ctx.fillRect.apply(ctx, hovermath);
 			ctx.fill();
 			ctx.beginPath();
+			ctx.font = hoverFont;
 			ctx.fillStyle = col2;
-			ctx.fillText(hover, halfwidth, height - fontSize - 10);
+			ctx.fillText(hover, halfwidth, hoverHeight);
 			ctx.fill();
 		}
 		var lerpVal = phy.lerpVal;
