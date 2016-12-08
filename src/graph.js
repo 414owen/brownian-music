@@ -1,8 +1,9 @@
-function DiscreteGraph(backend, container) {
+function DiscreteGraph(backend, container, initial) {
 	eval(Nutmeg.localScope);
 	var ratio = window.devicePixelRatio || 1;
 	var radius = 40 * ratio;
 	var width;
+	var date = new Date();
 	var height;
 	var halfwidth;
 	var halfheight;
@@ -21,11 +22,9 @@ function DiscreteGraph(backend, container) {
 		canv.height(height)
 	}
 
-
 	window.onresize = setDimensions;
 	setDimensions();
 	var ctx = canv.val.getContext('2d');
-	var result = {};
 	fontSize = Math.floor(ratio * 14);
 	hoverFontSize = Math.floor(fontSize * 1.4);
 	var font =  fontSize + "px Raleway";
@@ -53,7 +52,27 @@ function DiscreteGraph(backend, container) {
 	var descrip = div.style({color: col2, backgroundColor: col1, display: 'relative'});
 	container(
 		canv,
-		div.style({color: col2, position: "absolute", top: "4rem", left: "4rem"})(
+		div.style({color: col2, position: "absolute", top: "4rem", left: "4rem", textAlign: "left"})(
+			button('Explode all').onclick(function() {
+				var ind = 0;
+				var delay = 500;
+				var nodeNum = nodes.length;
+				var start = date.getTime();
+				function expandANode() {
+					if (ind < nodeNum) {
+						var node = nodes[ind++];
+						backend.getRelated(node.ent.id, ids, function(ent) {
+							var newDate = date.getTime();
+							var target = start + delay * ind;
+							window.setTimeout(function() {addNode(node, ent);}, target - newDate);
+						});
+						window.setTimeout(expandANode, delay / 2);
+					}
+				}
+				expandANode();
+			}),
+			br(),
+			br(),
 			phys.map(function(p) {
 				var inp = input.type('text').style({backgroundColor: col2, border: 'none'});
 				function describe() {descrip.clear()(p[1]);}
@@ -146,7 +165,7 @@ function DiscreteGraph(backend, container) {
 
 	var ids = {};
 
-	result.addNode = function(from, ent) {
+	function addNode(from, ent) {
 		if (ent == null) return;
 		ids[ent.id] = true;
 		var node = {
@@ -282,18 +301,23 @@ function DiscreteGraph(backend, container) {
 		return distance < radius;
 	}
 
+	function expandNode(node) {
+		backend.getRelated(node.ent.id, ids, function(ent) {
+			addNode(node, ent);
+		});
+	}
+
 	canv.onclick(function(e) {
 		var x = lastx = (e.pageX - canv.val.offsetLeft) * ratio + centx;
 		var y = lasty = (e.pageY - canv.val.offsetTop) * ratio + centy;
 		for (var i = 0; i < nodes.length; i++) {
 			var node = nodes[i];
 			if (pointInNode(node.pos.x, node.pos.y, x, y)) {
-				backend.getRelated(node.ent.id, ids, function(ent) {
-					result.addNode(node, ent);
-				});
+				expandNode(node);
 				break;
 			}
 		}
 	});
-	return result;
+
+	addNode(null, initial);
 }

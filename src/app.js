@@ -43,8 +43,7 @@ window.onload = function() {
 					.style(style.base, style.listItem)
 					.onclick(function() {
 						body.clear()(graphHolder);
-						var frontend = DiscreteGraph(backend, graphHolder);
-						frontend.addNode(null, artist);
+						var frontend = DiscreteGraph(backend, graphHolder, artist);
 					})
 				);
 			}
