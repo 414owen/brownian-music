@@ -216,6 +216,7 @@ function DiscreteGraph(backend, container, initial) {
 	var hover = "";
 	var hovermath = [];
 	var twopi = 2 * Math.PI;
+	var lastFrameHovered = false;
 	function frame() {
 		ctx.beginPath();
 		ctx.textAlign = 'center';
@@ -295,6 +296,13 @@ function DiscreteGraph(backend, container, initial) {
 			ctx.fillStyle = col2;
 			ctx.fillText(hover, halfwidth, hoverHeight);
 			ctx.fill();
+			if (!lastFrameHovered) {
+				lastFrameHovered = true;
+				canv.style({cursor: 'pointer'});
+			}
+		} else if (lastFrameHovered) {
+			canv.style({cursor: ''});
+			lastFrameHovered = false;
 		}
 		var lerpVal = phy.lerpVal;
 		centx = centx * (1 - lerpVal) + centTargetX * lerpVal;

@@ -1,28 +1,3 @@
-// ----------------------
-// |                    |
-// |    Frontend API    |
-// |                    |
-// ----------------------
-
-// -----------
-// |  Types  |
-// -----------
-
-/* 
- * Entity:
- * {
- *	value: name,
- *	id: what is needed to identify an element
- * }
- *
- */
-
-/*
- * search()
- * 
- *
- */
-
 window.onload = function() {
 
 	var searchResults = div().style(style.vertical);
@@ -33,6 +8,7 @@ window.onload = function() {
 
 	function addSearchResults(artists) {
 		searchResults.clear();
+		instructions.clear();
 		if (artists.length === 0) {
 			searchResults(div('No Results').style(style.noResult))
 		}
@@ -40,7 +16,7 @@ window.onload = function() {
 			function(artist) {
 				searchResults(
 					div(artist.value)
-					.style(style.base, style.listItem)
+					.style(style.base, style.listItem, {boxSizing: 'border-box'})
 					.onclick(function() {
 						body.clear()(graphHolder);
 						var frontend = DiscreteGraph(backend, graphHolder, artist);
@@ -53,15 +29,17 @@ window.onload = function() {
 	var backend = SpotifyPlugin();
 	var graphHolder = div.style({display: 'block'}, style.fill);
 	var inputvar = input('Hello World')
-		.style(style.input, {width: '100%'})
+		.style(style.input, {width: '100%', boxSizing: 'border-box'})
 		.placeholder('Artist')
 		.onchange(performSearch);
-
+	var instructions = div("Please type in an artist's name and press <enter>");
 	body.style(style.body, style.center)(
 		div(
 			inputvar,
-			div(searchResults).style({width: '100%'})
-		).style({width: '15rem'})
+			div(searchResults).style({width: '100%'}),
+			br(),
+			instructions
+		).style({width: '15rem', textAlign: "center"})
 	);
 
 };
