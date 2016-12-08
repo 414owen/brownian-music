@@ -11,19 +11,23 @@ window.onload = function() {
 		instructions.clear();
 		if (artists.length === 0) {
 			searchResults(div('No Results').style(style.noResult))
+		} else if (artists.length === 1) {
+			body.clear()(graphHolder);
+			var frontend = DiscreteGraph(backend, graphHolder, artists[0]);
+		} else {
+			artists.forEach(
+				function(artist) {
+					searchResults(
+						div(artist.value)
+						.style(style.base, style.listItem, {boxSizing: 'border-box'})
+						.onclick(function() {
+							body.clear()(graphHolder);
+							var frontend = DiscreteGraph(backend, graphHolder, artist);
+						})
+					);
+				}
+			);
 		}
-		artists.forEach(
-			function(artist) {
-				searchResults(
-					div(artist.value)
-					.style(style.base, style.listItem, {boxSizing: 'border-box'})
-					.onclick(function() {
-						body.clear()(graphHolder);
-						var frontend = DiscreteGraph(backend, graphHolder, artist);
-					})
-				);
-			}
-		);
 	}
 
 	var backend = SpotifyPlugin();
