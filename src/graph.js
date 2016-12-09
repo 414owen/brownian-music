@@ -3,14 +3,12 @@ function DiscreteGraph(backend, container, initial) {
 	var ratio = window.devicePixelRatio || 1;
 	var radius = 40 * ratio;
 	var width;
-	var date = new Date();
 	var height;
 	var halfwidth;
 	var halfheight;
 	var hoverHeight;
 	var startVel = 1 * ratio;
-	var canv = canvas()
-		.style({width: '100%', height: '100%'});
+	var canv = canvas.style({width: '100%', height: '100%'});
 	var col1 = '#333';
 	var col2 = '#ddd';
 	var col3 = '#daa';
@@ -42,14 +40,14 @@ function DiscreteGraph(backend, container, initial) {
 	var phy = {};
 
 	var phys = [
-		['nodeMass', 'Node Mass', 10],
-		['attract', 'Attraction Multiplier', 100],
-		['repel', 'Repulsion Multiplier', 500],
-		['atpow', 'Attraction Inverse Distance Indice', 1.18],
-		['reppow', 'Repulsion Inverse Distance Indice', 1.45],
-		['drag', 'Velocity Multiplier', 0.97],
-		['speedlimit', 'Speed Limit', 20],
-		['lerpVal', 'Camera Pan Rate (lerp value)', 0.05]
+		['nodeMass',   'Node Mass',                          10],
+		['attract',    'Attraction Multiplier',              100],
+		['repel',      'Repulsion Multiplier',               500],
+		['atpow',      'Attraction Inverse Distance Indice', 1.18],
+		['reppow',     'Repulsion Inverse Distance Indice',  1.45],
+		['drag',       'Velocity Multiplier',                0.97],
+		['speedlimit', 'Speed Limit',                        20],
+		['lerpVal',    'Camera Pan Rate (lerp value)',       0.05]
 	];
 
 	phys.forEach(function(p) {
@@ -65,17 +63,19 @@ function DiscreteGraph(backend, container, initial) {
 				var ind = 0;
 				var delay = 500;
 				var nodeNum = nodes.length;
-				var start = date.getTime();
+				var start = (new Date()).getTime();
 				function expandANode() {
-					if (ind < nodeNum) {
-						var node = nodes[ind++];
-						backend.getRelated(node.ent.id, ids, function(ent) {
-							var newDate = date.getTime();
-							var target = start + delay * ind;
-							window.setTimeout(function() {addNode(node, ent);}, target - newDate);
-						});
-						window.setTimeout(expandANode, delay / 2);
-					}
+					if (ind >= nodeNum) return;
+					var node = nodes[ind];
+					backend.getRelated(node.ent.id, ids, function(ent) {
+						console.log("got ind: " + ind);
+						var newDate = (new Date()).getTime();
+						var target = start + delay * ind;
+						var diff = target - newDate;
+						window.setTimeout(function() {addNode(node, ent);}, Math.max(0, diff));
+					});
+					window.setTimeout(expandANode, delay / 2);
+					ind++;
 				}
 				expandANode();
 			}),
