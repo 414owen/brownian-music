@@ -60,22 +60,23 @@ function DiscreteGraph(backend, container, initial) {
 		canv,
 		div.style({color: col2, position: "absolute", top: "4rem", left: "4rem", textAlign: "left"})(
 			button('Explode all').onclick(function() {
-				var ind = 0;
+				var getInd = 0;
+				var putInd = 0;
 				var delay = 500;
 				var nodeNum = nodes.length;
 				var start = (new Date()).getTime();
 				function expandANode() {
-					if (ind >= nodeNum) return;
-					var node = nodes[ind];
+					if (getInd >= nodeNum) return;
+					var node = nodes[getInd];
 					backend.getRelated(node.ent.id, ids, function(ent) {
-						console.log("got ind: " + ind);
+						console.log("got ind: " + getInd);
 						var newDate = (new Date()).getTime();
-						var target = start + delay * ind;
+						var target = start + delay * putInd++;
 						var diff = target - newDate;
 						window.setTimeout(function() {addNode(node, ent);}, Math.max(0, diff));
 					});
 					window.setTimeout(expandANode, delay / 2);
-					ind++;
+					getInd++;
 				}
 				expandANode();
 			}),
