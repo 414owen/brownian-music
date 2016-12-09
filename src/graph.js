@@ -56,26 +56,31 @@ function DiscreteGraph(backend, container, initial) {
 
 	var numreg = new RegExp("^[-]?[0-9]*[\.]?[0-9]+$");
 	var descrip = div.style({color: col2, backgroundColor: col1, display: 'relative'});
+	var canExplode = true;
 	container(
 		canv,
 		div.style({color: col2, position: "absolute", top: "4rem", left: "4rem", textAlign: "left"})(
 			button('Explode all').onclick(function() {
+				if (!canExplode) return;
+				canExplode = false;
 				var getInd = 0;
 				var putInd = 0;
 				var delay = 500;
 				var nodeNum = nodes.length;
 				var start = (new Date()).getTime();
 				function expandANode() {
-					if (getInd >= nodeNum) return;
+					if (getInd >= nodeNum) {
+						canExplode = true;
+						return;
+					}
 					var node = nodes[getInd];
 					backend.getRelated(node.ent.id, ids, function(ent) {
-						console.log("got ind: " + getInd);
 						var newDate = (new Date()).getTime();
 						var target = start + delay * putInd++;
 						var diff = target - newDate;
-						window.setTimeout(function() {addNode(node, ent);}, Math.max(0, diff));
+						addNode(node, ent);
 					});
-					window.setTimeout(expandANode, delay / 2);
+					window.setTimeout(expandANode, delay);
 					getInd++;
 				}
 				expandANode();
