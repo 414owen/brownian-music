@@ -14,8 +14,8 @@ function DiscreteGraph(backend, container, initial) {
 	var col2 = '#ddd';
 	var col3 = '#daa';
 	var nodeCols = {};
-	nodeCols[col2] = {};
 	nodeCols[col3] = {};
+	nodeCols[col2] = {};
 	function calcHover() {
 		hovered = true;
 		ctx.font = hoverFont;
@@ -77,12 +77,7 @@ function DiscreteGraph(backend, container, initial) {
 						return;
 					}
 					var node = nodes[getInd];
-					backend.getRelated(node.ent.id, ids, function(ent) {
-						var newDate = (new Date()).getTime();
-						var target = start + delay * putInd++;
-						var diff = target - newDate;
-						addNode(node, ent);
-					});
+					expandNode(node);
 					window.setTimeout(expandANode, delay);
 					getInd++;
 				}
