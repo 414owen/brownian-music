@@ -9,9 +9,13 @@ function DiscreteGraph(backend, container, initial) {
 	var hoverHeight;
 	var startVel = 1 * ratio;
 	var canv = canvas.style({width: '100%', height: '100%'});
+	var ctx = canv.val.getContext('2d');
 	var col1 = '#333';
 	var col2 = '#ddd';
 	var col3 = '#daa';
+	var nodeCols = {};
+	nodeCols[col2] = {};
+	nodeCols[col3] = {};
 	function calcHover() {
 		hovered = true;
 		ctx.font = hoverFont;
@@ -30,7 +34,6 @@ function DiscreteGraph(backend, container, initial) {
 	}
 
 	window.onresize = setDimensions;
-	var ctx = canv.val.getContext('2d');
 	fontSize = Math.floor(ratio * 14);
 	hoverFontSize = Math.floor(fontSize * 1.4);
 	var font =  fontSize + "px Raleway";
@@ -66,14 +69,14 @@ function DiscreteGraph(backend, container, initial) {
 				var getInd = 0;
 				var putInd = 0;
 				var delay = 500;
-				var nodeNum = nodes.length;
+				var nodeNum = newNodes.length;
 				var start = (new Date()).getTime();
 				function expandANode() {
 					if (getInd >= nodeNum) {
 						canExplode = true;
 						return;
 					}
-					var node = nodes[getInd];
+					var node = newNodes[getInd];
 					backend.getRelated(node.ent.id, ids, function(ent) {
 						var newDate = (new Date()).getTime();
 						var target = start + delay * putInd++;
@@ -203,6 +206,7 @@ function DiscreteGraph(backend, container, initial) {
 			node.vel = new Vec(0,0);
 		}
 		nodes.push(node);
+		nodeCols[col2][ent.id] = node;
 		return node;
 	}
 
@@ -224,32 +228,37 @@ function DiscreteGraph(backend, container, initial) {
 	var twopi = 2 * Math.PI;
 	var lastFrameHovered = false;
 	function frame() {
-		ctx.beginPath();
 		ctx.textAlign = 'center';
-		ctx.textBaseline="middle"; 
-		ctx.fillStyle = col2;
+		ctx.textBaseline = "middle"; 
 		ctx.lineWidth = 0;
 		ctx.clearRect(0, 0, width, height);
 		var cx = lastx = (cursorX - canv.val.offsetLeft) * ratio + centx;
 		var cy = lasty = (cursorY - canv.val.offsetTop) * ratio + centy;
 		var hovered = false;
-		nodes.forEach(function(node) {
-			var pos = node.pos;
-			node.force.set(0, 0);
-			var x = pos.x;
-			var y = pos.y;
-			if (pointInNode(x, y, cx, cy)) {
-				hovered = true;
-				if (lastHovered !== node.number) {
-					hover = node.fullText;
-					lastHovered = node.number;
-					calcHover();
+		for (var col in nodeCols) {
+			ctx.beginPath();
+			ctx.fillStyle = col;
+			var colArr = nodeCols[col];
+			var len = colArr.length;
+			for (var id in colArr) {
+				var node = colArr[id];
+				var pos = node.pos;
+				node.force.set(0, 0);
+				var x = pos.x;
+				var y = pos.y;
+				if (pointInNode(x, y, cx, cy)) {
+					hovered = true;
+					if (lastHovered !== node.number) {
+						hover = node.fullText;
+						lastHovered = node.number;
+						calcHover();
+					}
 				}
+				ctx.moveTo(x, y);
+				ctx.arc(x - centx, y - centy, radius, 0, twopi);
 			}
-			ctx.moveTo(x, y);
-			ctx.arc(x - centx, y - centy, radius, 0, twopi);
-		});
-		ctx.fill();
+			ctx.fill();
+		};
 		ctx.beginPath();
 		ctx.font = font;
 		ctx.fillStyle = col1;
@@ -326,6 +335,9 @@ function DiscreteGraph(backend, container, initial) {
 	function expandNode(node) {
 		backend.getRelated(node.ent.id, ids, function(ent) {
 			addNode(node, ent);
+		}, function() {
+			delete nodeCols[col2][node.ent.id];
+			nodeCols[col3][node.ent.id] = node;
 		});
 	}
 

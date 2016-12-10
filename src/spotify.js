@@ -25,23 +25,33 @@ function SpotifyPlugin() {
 
 	function firstRelated(id, ids) {
 		var rel = related[id];
+		var res = null;
+		var toSplice = 0;
 		for (var i = 0; i < rel.length; i++) {
 			if (ids[rel[i].id] === undefined) {
-				return rel[i];
+				res = rel[i];
+				break;
+			} else {
+				toSplice++;
 			}
 		}
-		return null;
+		rel.splice(0, toSplice);
+		return res;
 	}
 
-	result.getRelated = function(id, ids, callback) {
+	result.getRelated = function(id, ids, callback, noneLeft) {
 		if (related[id] != null) {
-			callback(firstRelated(id, ids));
+			var rel = firstRelated(id, ids);
+			if (rel == null) noneLeft();
+			else callback(rel);
 		} else {
 			superagent.get('https://api.spotify.com/v1/artists/' + encodeURI(id) + '/related-artists')
 				.end(function(err, relatedans) {
 					var results = JSON.parse(relatedans.text).artists;
 					related[id] = results.map(function(res) {return {value: res.name, id: res.id};});
-					callback(firstRelated(id, ids));
+					var rel = firstRelated(id, ids);
+					if (rel == null) noneLeft();
+					else callback(rel);
 				});
 		}
 	};
