@@ -69,14 +69,14 @@ function DiscreteGraph(backend, container, initial) {
 				var getInd = 0;
 				var putInd = 0;
 				var delay = 500;
-				var nodeNum = newNodes.length;
+				var nodeNum = nodes.length;
 				var start = (new Date()).getTime();
 				function expandANode() {
 					if (getInd >= nodeNum) {
 						canExplode = true;
 						return;
 					}
-					var node = newNodes[getInd];
+					var node = nodes[getInd];
 					backend.getRelated(node.ent.id, ids, function(ent) {
 						var newDate = (new Date()).getTime();
 						var target = start + delay * putInd++;
@@ -120,7 +120,9 @@ function DiscreteGraph(backend, container, initial) {
 			this.y = y;
 		}],
 		["abs", function() {
-			return Math.sqrt(this.x * this.x + this.y * this.y);
+			var x = this.x;
+			var y = this.y;
+			return Math.sqrt(x * x + y * y);
 		}],
 		["changeTowards", function(vec2, amt) {
 			var x = vec2.x - this.x;
@@ -228,6 +230,12 @@ function DiscreteGraph(backend, container, initial) {
 	var twopi = 2 * Math.PI;
 	var lastFrameHovered = false;
 	function frame() {
+		var nodeMass = phy.nodeMass;
+		var nodeMassSquared = nodeMass * nodeMass;
+		var attract = phy.attract;
+		var repel = phy.repel;
+		var atpow = phy.atpow;
+		var reppow = phy.reppow;
 		ctx.textAlign = 'center';
 		ctx.textBaseline = "middle"; 
 		ctx.lineWidth = 0;
@@ -270,7 +278,6 @@ function DiscreteGraph(backend, container, initial) {
 		var nodeAmt = nodes.length;
 		for (var i = 0; i < nodeAmt; i++) {
 			var node = nodes[i];
-			var nodeMass = phy.nodeMass;
 			var pos = node.pos;
 			var vel = node.vel;
 			var force = node.force;
@@ -281,8 +288,8 @@ function DiscreteGraph(backend, container, initial) {
 				var delta = dist.abs();
 				if (delta > 0) {
 					var distscaled = dist;
-					var at = phy.attract * (nodeMass * nodeMass) / Math.pow(delta, phy.atpow);
-					var rep = phy.repel * (nodeMass * nodeMass) / Math.pow(delta, phy.reppow);
+					var at = attract * (nodeMassSquared) / Math.pow(delta, atpow);
+					var rep = repel * (nodeMassSquared) / Math.pow(delta, reppow);
 					var newforce = at - rep;
 					dist.lim(1);
 					dist.mulnum(newforce);
