@@ -209,8 +209,6 @@ function DiscreteGraph(backend, container, initial) {
 
 	var centx;
 	var centy;
-	var lastx;
-	var lasty;
 
 	var cursorX;
 	var cursorY;
@@ -235,8 +233,8 @@ function DiscreteGraph(backend, container, initial) {
 		ctx.textBaseline = "middle"; 
 		ctx.lineWidth = 0;
 		ctx.clearRect(0, 0, width, height);
-		var cx = lastx = (cursorX - canv.val.offsetLeft) * ratio + centx;
-		var cy = lasty = (cursorY - canv.val.offsetTop) * ratio + centy;
+		var cx = (cursorX - canv.val.offsetLeft) * ratio + centx;
+		var cy = (cursorY - canv.val.offsetTop) * ratio + centy;
 		var hovered = false;
 		for (var col in nodeCols) {
 			ctx.beginPath();
@@ -344,8 +342,8 @@ function DiscreteGraph(backend, container, initial) {
 	}
 
 	canv.onclick(function(e) {
-		var x = lastx = (e.pageX - canv.val.offsetLeft) * ratio + centx;
-		var y = lasty = (e.pageY - canv.val.offsetTop) * ratio + centy;
+		var x = (e.pageX - canv.val.offsetLeft) * ratio + centx;
+		var y = (e.pageY - canv.val.offsetTop) * ratio + centy;
 		for (var i = 0; i < nodes.length; i++) {
 			var node = nodes[i];
 			if (pointInNode(node.pos.x, node.pos.y, x, y)) {
