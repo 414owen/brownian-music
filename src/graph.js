@@ -190,9 +190,7 @@ function DiscreteGraph(backend, container, initial) {
 			force: new Vec(0, 0)
 		};
 		node.onclick = function() {
-			backend.getRelated(end.id, function(ent) {
-				addNode(node, ent);
-			});
+			expandNode(node);
 		}
 		if (from === null) {
 			node.pos = new Vec(halfwidth, halfheight);
