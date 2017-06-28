@@ -1,7 +1,18 @@
 window.onload = function() {
+
+	if (window.location.hash.length > 0) {
+		var auths = /access_token=([^&]*)&.*expires_in=(.*)$/.exec(window.location.hash);
+		var auth = {
+			token: auths[1],
+			expires: Date.now() + 1000 * auths[2]
+		};
+		var backend = SpotifyPlugin(auth);
+	} else {
+		window.location.href = "https://accounts.spotify.com/authorize?client_id=c8cfa4ab52fc436fbb13ac7bad0dffec&redirect_uri=" + encodeURIComponent(window.location.href) + "&&response_type=token";
+	}
+
 	eval(Nutmeg.localScope);
 
-	var backends = {selected: 'spotify'};
 	var foreground = '#ddd';
 	var background = '#333';
 
@@ -144,7 +155,6 @@ window.onload = function() {
 		}
 	}
 
-	var backend = SpotifyPlugin();
 	var graphHolder = div.style({display: 'block'}, style.fill);
 	var inputvar = input('Hello World')
 		.style(style.input, {width: '100%', boxSizing: 'border-box'})
