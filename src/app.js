@@ -7,6 +7,7 @@ window.onload = function() {
 			expires: Date.now() + 1000 * auths[2]
 		};
 		var backend = SpotifyPlugin(auth);
+		window.location.hash = "";
 	} else {
 		window.location.href = "https://accounts.spotify.com/authorize?client_id=c8cfa4ab52fc436fbb13ac7bad0dffec&redirect_uri=" + encodeURIComponent(window.location.href) + "&&response_type=token";
 	}
