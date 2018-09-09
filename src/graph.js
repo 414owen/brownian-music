@@ -228,7 +228,7 @@ function DiscreteGraph(backend, container, initial) {
 		var atpow = phy.atpow;
 		var reppow = phy.reppow;
 		ctx.textAlign = 'center';
-		ctx.textBaseline = "middle"; 
+		ctx.textBaseline = "middle";
 		ctx.lineWidth = 0;
 		ctx.clearRect(0, 0, width, height);
 		var cx = (cursorX - canv.val.offsetLeft) * ratio + centx;
